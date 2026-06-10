@@ -37,12 +37,17 @@
                 
                 <!-- Nav Items -->
                 <HBox fx:id="navHome" onMouseClicked="#navToHome" styleClass="nav-item, nav-active" alignment="CENTER_LEFT" spacing="15">
-                    <SVGPath content="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" styleClass="nav-icon, nav-icon-active" />
+                    <SVGPath content="m2 10l9.108-7.19a1.44 1.44 0 0 1 1.784 0L16.5 5.658V4a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v4.026L22 10m-2 1.5v4c0 2.828 0 4.243-.879 5.121c-.878.879-2.293.879-5.121.879h-4c-2.828 0-4.243 0-5.121-.879C4 19.743 4 18.328 4 15.5v-4 M15.001 15.5c-.8.622-1.85 1-3 1s-2.2-.378-3-1" 
+         styleClass="nav-icon, nav-icon-active" 
+         style="-fx-fill: transparent; -fx-stroke: #FFC107; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;" />
+
                     <Label text="Home" styleClass="nav-label, nav-label-active" />
                 </HBox>
 
                 <HBox fx:id="navAnalytics" onMouseClicked="#navToAnalytics" styleClass="nav-item" alignment="CENTER_LEFT" spacing="15">
-                    <SVGPath content="M3 3v18h18V3H3zm16 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z" styleClass="nav-icon" />
+                    <SVGPath content="M6.5 17.5v-3m5 3v-9m5 9v-4 M21.5 5.5a3 3 0 1 1-6 0a3 3 0 0 1 6 0Z M21.496 11s.004.34.004 1c0 4.478 0 6.718-1.391 8.109S16.479 21.5 12 21.5c-4.478 0-6.718 0-8.109-1.391S2.5 16.479 2.5 12c0-4.478 0-6.717 1.391-8.109C5.282 2.5 7.521 2.5 12 2.5h1" 
+         styleClass="nav-icon" 
+         style="-fx-fill: transparent; -fx-stroke: #cccccc; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;" />
                     <Label text="Analytics" styleClass="nav-label" />
                 </HBox>
 
@@ -52,17 +57,23 @@
                 
                 <!-- Bottom Profile -->
                 <HBox fx:id="navProfile" onMouseClicked="#navToProfile" styleClass="nav-item" alignment="CENTER_LEFT" spacing="15">
-                    <SVGPath content="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" styleClass="nav-icon" />
+                    <SVGPath content="M11.5 2.5h1c4.243 0 6.364 0 7.682 1.318S21.5 7.258 21.5 11.5v1c0 4.243 0 6.364-1.318 7.682S16.742 21.5 12.5 21.5h-1c-4.243 0-6.364 0-7.682-1.318S2.5 16.742 2.5 12.5v-1c0-4.243 0-6.364 1.318-7.682S7.258 2.5 11.5 2.5 M12 7.395a3.5 3.5 0 1 1 0 7a3.5 3.5 0 0 1 0-7 M18.982 20.895a7 7 0 0 0-13.965 0" 
+         styleClass="nav-icon" 
+         style="-fx-fill: transparent; -fx-stroke: #cccccc; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;" />
                     <Label text="Profile" styleClass="nav-label" />
                 </HBox>
 
                 <HBox fx:id="navSettings" onMouseClicked="#navToSettings" styleClass="nav-item" alignment="CENTER_LEFT" spacing="15">
-                    <SVGPath content="M19.43 12.98c.04-.32.07-.64.07-.98 0-.34-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65z" styleClass="nav-icon" />
+                    <SVGPath content="m21.318 7.141l-.494-.856c-.373-.648-.56-.972-.878-1.101c-.317-.13-.676-.027-1.395.176l-1.22.344c-.459.106-.94.046-1.358-.17l-.337-.194a2 2 0 0 1-.788-.967l-.334-.998c-.22-.66-.33-.99-.591-1.178c-.261-.19-.609-.19-1.303-.19h-1.115c-.694 0-1.041 0-1.303.19c-.261.188-.37.518-.59 1.178l-.334.998a2 2 0 0 1-.789.967l-.337.195c-.418.215-.9.275-1.358.17l-1.22-.345c-.719-.203-1.078-.305-1.395-.176c-.318.129-.505.453-.878 1.1l-.493.857c-.35.608-.525.911-.491 1.234c.034.324.268.584.736 1.105l1.031 1.153c.252.319.431.875.431 1.375s-.179 1.056-.43 1.375l-1.032 1.152c-.468.521-.702.782-.736 1.105s.14.627.49 1.234l.494.857c.373.647.56.971.878 1.1s.676.028 1.395-.176l1.22-.344a2 2 0 0 1 1.359.17l.336.194c.36.23.636.57.788.968l.334.997c.22.66.33.99.591 1.18c.262.188.609.188 1.303.188h1.115c.694 0 1.042 0 1.303-.189s.371-.519.59-1.179l.335-.997c.152-.399.428-.738.788-.968l.336-.194c.42-.215.9-.276 1.36-.17l1.22.344c.718.204 1.077.306 1.394.177c.318-.13.505-.454.878-1.101l.493-.857c.35-.607.525-.91.491-1.234s-.268-.584-.736-1.105l-1.031-1.152c-.252-.32-.431-.875-.431-1.375s.179-1.056.43-1.375l1.032-1.153c.468-.52.702-.781.736-1.105s-.14-.626-.49-1.234Z M15.52 12a3.5 3.5 0 1 1-7 0a3.5 3.5 0 0 1 7 0Z" 
+         styleClass="nav-icon" 
+         style="-fx-fill: transparent; -fx-stroke: #cccccc; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;" />
                     <Label text="Settings" styleClass="nav-label" />
                 </HBox>
 
                 <HBox fx:id="navLogout" onMouseClicked="#logout" styleClass="nav-item" alignment="CENTER_LEFT" spacing="15">
-                    <SVGPath content="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" styleClass="nav-icon" />
+                    <SVGPath content="M4.393 4C4 4.617 4 5.413 4 7.004v9.994c0 1.591 0 2.387.393 3.002q.105.165.235.312c.483.546 1.249.765 2.78 1.202c1.533.438 2.3.657 2.856.329a1.5 1.5 0 0 0 .267-.202C11 21.196 11 20.4 11 18.803V5.197c0-1.596 0-2.393-.469-2.837a1.5 1.5 0 0 0-.267-.202c-.555-.328-1.323-.11-2.857.329c-1.53.437-2.296.656-2.78 1.202a2.5 2.5 0 0 0-.234.312M11 4h2.017c1.902 0 2.853 0 3.443.586c.33.326.476.764.54 1.414m-6 14h2.017c1.902 0 2.853 0 3.443-.586c.33-.326.476-.764.54-1.414m4-6h-7m5.5-2.5S22 11.34 22 12s-2.5 2.5-2.5 2.5" 
+         styleClass="nav-icon" 
+         style="-fx-fill: transparent; -fx-stroke: #FF416C; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;" />
                     <Label text="Logout" styleClass="nav-label" style="-fx-text-fill: #FF416C;" />
                 </HBox>
             </VBox>
