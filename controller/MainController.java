@@ -190,6 +190,14 @@ public class MainController {
             filterCategoryCombo.setItems(FXCollections.observableArrayList(cats));
             filterCategoryCombo.setValue("All Categories");
         }
+        
+        if (historyCategoryFilter != null) {
+            java.util.List<String> historyCats = new java.util.ArrayList<>();
+            historyCats.add("All Categories");
+            historyCats.addAll(java.util.Arrays.asList(daftarKategori));
+            historyCategoryFilter.setItems(FXCollections.observableArrayList(historyCats));
+            historyCategoryFilter.setValue("All Categories");
+        }
 
         // Setup Chart Date Filter
         if (chartDateFilter != null) {
@@ -727,9 +735,15 @@ public class MainController {
             HBox.setHgrow(spacer, Priority.ALWAYS);
             
             // Edit Button
-            Button editBtn = new Button("Edit");
+            Button editBtn = new Button("");
             editBtn.getStyleClass().add("btn-secondary");
-            editBtn.setStyle("-fx-font-size: 11px; -fx-padding: 3 8 3 8; -fx-cursor: hand;");
+            editBtn.setStyle("-fx-padding: 6 12 6 12; -fx-cursor: hand; -fx-min-width: 40;");
+            
+            SVGPath editIcon = new SVGPath();
+            editIcon.setContent("M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z");
+            editIcon.setStyle("-fx-fill: transparent; -fx-stroke: white; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;");
+            editBtn.setGraphic(editIcon);
+            
             editBtn.setOnAction(e -> bukaFormEdit(t));
 
             // Amount
