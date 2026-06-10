@@ -171,7 +171,7 @@
                                     </HBox>
                                 </HBox>
                                 <HBox styleClass="list-header" spacing="15">
-                                    <Label text="Category" prefWidth="250" />
+                                    <Label text="Category" prefWidth="310" />
                                     <Label text="Date" prefWidth="120" />
                                     <Region HBox.hgrow="ALWAYS" />
                                     <Label text="Amount" alignment="CENTER_RIGHT" prefWidth="200" />

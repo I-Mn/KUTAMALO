@@ -752,21 +752,25 @@ public class MainController {
 
             Button editBtn = new Button("");
             editBtn.getStyleClass().add("btn-secondary");
-            editBtn.setStyle("-fx-padding: 6 12 6 12; -fx-cursor: hand; -fx-min-width: 40;");
+            editBtn.setStyle("-fx-padding: 6; -fx-cursor: hand; -fx-min-width: 34; -fx-min-height: 34; -fx-max-width: 34; -fx-max-height: 34; -fx-border-radius: 8; -fx-background-radius: 8; -fx-alignment: center;");
             
             SVGPath editIcon = new SVGPath();
             editIcon.setContent("M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z");
             editIcon.setStyle("-fx-fill: transparent; -fx-stroke: white; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;");
+            editIcon.setScaleX(0.8);
+            editIcon.setScaleY(0.8);
             editBtn.setGraphic(editIcon);
             editBtn.setOnAction(e -> bukaFormEdit(t));
 
             Button deleteBtn = new Button("");
             deleteBtn.getStyleClass().add("btn-secondary");
-            deleteBtn.setStyle("-fx-padding: 6 12 6 12; -fx-cursor: hand; -fx-min-width: 40; -fx-border-color: #FF416C;");
+            deleteBtn.setStyle("-fx-padding: 6; -fx-cursor: hand; -fx-min-width: 34; -fx-min-height: 34; -fx-max-width: 34; -fx-max-height: 34; -fx-border-radius: 8; -fx-background-radius: 8; -fx-border-color: #FF416C; -fx-alignment: center;");
             
             SVGPath deleteIcon = new SVGPath();
             deleteIcon.setContent("M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16");
             deleteIcon.setStyle("-fx-fill: transparent; -fx-stroke: #FF416C; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;");
+            deleteIcon.setScaleX(0.8);
+            deleteIcon.setScaleY(0.8);
             deleteBtn.setGraphic(deleteIcon);
             deleteBtn.setOnAction(e -> {
                 akun.hapusTransaksiDB(t);
