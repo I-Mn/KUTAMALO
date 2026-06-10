@@ -70,6 +70,9 @@ public class MainController {
     @FXML private BarChart<String, Number> spendingChart;
     @FXML private PieChart expensePieChart;
     @FXML private VBox listRiwayat;
+    @FXML private DatePicker startDateFilter;
+    @FXML private DatePicker endDateFilter;
+    @FXML private ComboBox<String> chartDateFilter;
 
     // Analytics Dashboard Elements
     @FXML private DatePicker analyticsStartPicker;
@@ -178,6 +181,18 @@ public class MainController {
             kategoriComboModal.setButtonCell(kategoriComboModal.getCellFactory().call(null));
         }
 
+        if (filterTypeCombo != null) {
+            filterTypeCombo.setItems(FXCollections.observableArrayList("All Types", "Income", "Expense"));
+            filterTypeCombo.setValue("All Types");
+        }
+        if (filterCategoryCombo != null) {
+            java.util.List<String> cats = new java.util.ArrayList<>();
+            cats.add("All Categories");
+            cats.addAll(java.util.Arrays.asList(daftarKategori));
+            filterCategoryCombo.setItems(FXCollections.observableArrayList(cats));
+            filterCategoryCombo.setValue("All Categories");
+        }
+
         // Setup Chart Date Filter
         if (chartDateFilter != null) {
             chartDateFilter.getItems().addAll("Last 7 Days", "Last 30 Days", "This Year", "All Time", "Custom");
@@ -192,19 +207,6 @@ public class MainController {
         if (analyticsStartPicker != null) {
             analyticsStartPicker.valueProperty().addListener((obs, oldV, newV) -> renderAnalytics());
             analyticsEndPicker.valueProperty().addListener((obs, oldV, newV) -> renderAnalytics());
-        }
-
-        // Setup History Category Filter
-        if (historyCategoryFilter != null) {
-            historyCategoryFilter.getItems().addAll("All Categories", "Pemasukan", "Pengeluaran", "Food & Drinks", "Transport", "Shopping", "Gift", "Investment", "Subscriptions", "Salary", "Other");
-            historyCategoryFilter.getSelectionModel().select("All Categories");
-        }
-
-        // Setup Search Listener
-        if (searchTransactionField != null) {
-            searchTransactionField.textProperty().addListener((obs, oldVal, newVal) -> {
-                renderListTransaksi(newVal);
-            });
         }
 
         updateDashboard();
@@ -672,30 +674,15 @@ public class MainController {
     }
 
     private void renderListTransaksi() {
-        renderListTransaksi(searchTransactionField != null ? searchTransactionField.getText() : "");
+        renderListTransaksi(akun.getRiwayatTransaksi());
     }
 
-    private void renderListTransaksi(String query) {
+    private void renderListTransaksi(java.util.List<Transaksi> transaksiList) {
+
         listRiwayat.getChildren().clear();
-        String lowerQuery = query != null ? query.toLowerCase() : "";
         
-        String categoryFilter = historyCategoryFilter != null ? historyCategoryFilter.getValue() : "All Categories";
+        for (Transaksi t : transaksiList) {
 
-        for (Transaksi t : akun.getRiwayatTransaksi()) {
-            if (!"All Categories".equals(categoryFilter)) {
-                if ("Pemasukan".equals(categoryFilter) && !(t instanceof model.Pemasukan)) continue;
-                if ("Pengeluaran".equals(categoryFilter) && !(t instanceof model.Pengeluaran)) continue;
-                if (!"Pemasukan".equals(categoryFilter) && !"Pengeluaran".equals(categoryFilter) && !t.getKategori().equalsIgnoreCase(categoryFilter)) continue;
-            }
-
-            if (!lowerQuery.isEmpty()) {
-                boolean matchKategori = t.getKategori() != null && t.getKategori().toLowerCase().contains(lowerQuery);
-                boolean matchDeskripsi = t.getDeskripsi() != null && t.getDeskripsi().toLowerCase().contains(lowerQuery);
-                if (!matchKategori && !matchDeskripsi) {
-                    continue; // Skip items that don't match
-                }
-            }
-            
             HBox row = new HBox(15);
             row.getStyleClass().add("list-item");
             row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
@@ -775,6 +762,8 @@ public class MainController {
         } else {
             jenisComboModal.setValue("Pengeluaran");
         }
+        modalOverlay.setOpacity(0.0);
+
         modalOverlay.setVisible(true);
         javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), modalOverlay);
         ft.setFromValue(0.0);
