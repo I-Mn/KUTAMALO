@@ -9,9 +9,12 @@ import javafx.scene.image.ImageView;
 
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.animation.FadeTransition;
+import javafx.util.Duration;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.PieChart;
+import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
@@ -28,9 +31,18 @@ import model.Transaksi;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Map;import java.util.TreeMap;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class MainController {
+    @FXML private TextField searchTransactionField;
+    @FXML private ComboBox<String> chartDateFilter;
+    @FXML private ComboBox<String> historyCategoryFilter;
+    @FXML private DatePicker startDateFilter;
+    @FXML private DatePicker endDateFilter;
+    @FXML private javafx.scene.layout.StackPane logoutModalOverlay;
+    @FXML private javafx.scene.layout.Region dummyFocus;
 
     // Routing Views
     @FXML private ScrollPane homeView;
@@ -58,6 +70,16 @@ public class MainController {
     @FXML private BarChart<String, Number> spendingChart;
     @FXML private PieChart expensePieChart;
     @FXML private VBox listRiwayat;
+
+    // Analytics Dashboard Elements
+    @FXML private DatePicker analyticsStartPicker;
+    @FXML private DatePicker analyticsEndPicker;
+    @FXML private ComboBox<String> analyticsDateFilter;
+    @FXML private Label analyticsIncomeLabel;
+    @FXML private Label analyticsExpenseLabel;
+    @FXML private Label analyticsNetFlowLabel;
+    @FXML private AreaChart<String, Number> analyticsTrendChart;
+    @FXML private PieChart analyticsIncomePieChart;
 
     // Cards View Elements
     @FXML private VBox previewCard;
@@ -97,6 +119,7 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        currentView = homeView;
         if (model.Session.getInstance().getCurrentUser() != null) {
             greetingLabel.setText("Welcome back, " + model.Session.getInstance().getCurrentUser().getUsername() + "!");
         } else {
@@ -146,39 +169,97 @@ public class MainController {
             kategoriComboModal.setButtonCell(kategoriComboModal.getCellFactory().call(null));
         }
 
+        // Setup Chart Date Filter
+        if (chartDateFilter != null) {
+            chartDateFilter.getItems().addAll("Last 7 Days", "Last 30 Days", "This Year", "All Time", "Custom");
+            chartDateFilter.getSelectionModel().select("Last 30 Days");
+        }
+        
+        // Setup Analytics Date Filter
+        if (analyticsDateFilter != null) {
+            analyticsDateFilter.getItems().addAll("Last 7 Days", "Last 30 Days", "This Year", "All Time", "Custom");
+            analyticsDateFilter.getSelectionModel().select("Last 30 Days");
+        }
+        if (analyticsStartPicker != null) {
+            analyticsStartPicker.valueProperty().addListener((obs, oldV, newV) -> renderAnalytics());
+            analyticsEndPicker.valueProperty().addListener((obs, oldV, newV) -> renderAnalytics());
+        }
+
+        // Setup History Category Filter
+        if (historyCategoryFilter != null) {
+            historyCategoryFilter.getItems().addAll("All Categories", "Pemasukan", "Pengeluaran", "Food & Drinks", "Transport", "Shopping", "Gift", "Investment", "Subscriptions", "Salary", "Other");
+            historyCategoryFilter.getSelectionModel().select("All Categories");
+        }
+
+        // Setup Search Listener
+        if (searchTransactionField != null) {
+            searchTransactionField.textProperty().addListener((obs, oldVal, newVal) -> {
+                renderListTransaksi(newVal);
+            });
+        }
+
         updateDashboard();
         applyCardStyle();
     }
 
     // --- ROUTING LOGIC ---
 
-    private void hideAllViews() {
-        homeView.setVisible(false);
-        cardsView.setVisible(false);
-        analyticsView.setVisible(false);
-        profileView.setVisible(false);
-        settingsView.setVisible(false);
+    private ScrollPane currentView;
+
+    private void switchView(ScrollPane newView) {
+        if (currentView == newView) return;
+        
+        if (currentView != null) {
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(150), currentView);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            fadeOut.setOnFinished(e -> {
+                currentView.setVisible(false);
+                fadeInView(newView);
+            });
+            fadeOut.play();
+        } else {
+            homeView.setVisible(false);
+            cardsView.setVisible(false);
+            analyticsView.setVisible(false);
+            profileView.setVisible(false);
+            settingsView.setVisible(false);
+            fadeInView(newView);
+        }
+    }
+
+    private void fadeInView(ScrollPane newView) {
+        newView.setOpacity(0.0);
+        newView.setVisible(true);
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(150), newView);
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        fadeIn.play();
+        currentView = newView;
     }
 
     @FXML
     public void navToHome(MouseEvent event) {
         setActiveNav(navHome);
-        hideAllViews();
-        homeView.setVisible(true);
+        switchView(homeView);
     }
 
     @FXML
     public void navToAnalytics(MouseEvent event) {
         setActiveNav(navAnalytics);
-        hideAllViews();
-        analyticsView.setVisible(true);
+        switchView(analyticsView);
     }
 
     @FXML
     public void navToProfile(MouseEvent event) {
         setActiveNav(navProfile);
-        hideAllViews();
-        profileView.setVisible(true);
+        switchView(profileView);
+        profileView.setFocusTraversable(true);
+        javafx.application.Platform.runLater(() -> {
+            profileView.requestFocus();
+            // Just in case, try to focus the sidebar button too
+            navProfile.requestFocus();
+        });
         
         // Populate profile with user data if session exists
         model.User currentUser = model.Session.getInstance().getCurrentUser();
@@ -206,8 +287,7 @@ public class MainController {
     @FXML
     public void navToSettings(MouseEvent event) {
         setActiveNav(navSettings);
-        hideAllViews();
-        settingsView.setVisible(true);
+        switchView(settingsView);
     }
 
     private void setActiveNav(HBox activeNav) {
@@ -321,7 +401,7 @@ public class MainController {
         }
         pengeluaranLabel.setText(String.format("Rp %,.0f", totalSavings));
         
-        pemasukanLabel.setText(String.format("Rp %,.0f", akun.getTotalPemasukan()));
+        // pemasukanLabel.setText(String.format("Rp %,.0f", akun.getTotalPemasukan())); // Moved to renderChart
 
         if (previewSaldoLabel != null) {
             previewSaldoLabel.setText(saldoLabel.getText());
@@ -329,6 +409,139 @@ public class MainController {
 
         renderChart();
         renderListTransaksi();
+        renderAnalytics();
+    }
+
+    @javafx.fxml.FXML
+    public void handleChartFilterChange(javafx.event.ActionEvent event) {
+        String filter = chartDateFilter != null ? chartDateFilter.getValue() : "Last 30 Days";
+        boolean isCustom = "Custom".equals(filter);
+        if (startDateFilter != null && endDateFilter != null) {
+            startDateFilter.setVisible(isCustom);
+            startDateFilter.setManaged(isCustom);
+            endDateFilter.setVisible(isCustom);
+            endDateFilter.setManaged(isCustom);
+        }
+        renderChart();
+    }
+
+
+    @FXML
+    public void handleAnalyticsFilterChange(javafx.event.ActionEvent event) {
+        String filter = analyticsDateFilter != null ? analyticsDateFilter.getValue() : "Last 30 Days";
+        boolean isCustom = "Custom".equals(filter);
+        if (analyticsStartPicker != null && analyticsEndPicker != null) {
+            analyticsStartPicker.setVisible(isCustom);
+            analyticsStartPicker.setManaged(isCustom);
+            analyticsEndPicker.setVisible(isCustom);
+            analyticsEndPicker.setManaged(isCustom);
+        }
+        renderAnalytics();
+    }
+
+    private void renderAnalytics() {
+        if (analyticsTrendChart == null || analyticsIncomeLabel == null) return;
+        
+        analyticsTrendChart.getData().clear();
+        if (expensePieChart != null) expensePieChart.getData().clear();
+        if (analyticsIncomePieChart != null) analyticsIncomePieChart.getData().clear();
+
+        XYChart.Series<String, Number> incomeSeries = new XYChart.Series<>();
+        incomeSeries.setName("Income");
+        XYChart.Series<String, Number> expenseSeries = new XYChart.Series<>();
+        expenseSeries.setName("Expense");
+
+        Map<String, Double> expensesByCategory = new HashMap<>();
+        Map<String, Double> incomeByCategory = new HashMap<>();
+        
+        // Group trends by date
+        Map<java.time.LocalDate, Double> dailyIncome = new TreeMap<>();
+        Map<java.time.LocalDate, Double> dailyExpense = new TreeMap<>();
+
+        String filter = analyticsDateFilter != null ? analyticsDateFilter.getValue() : "Last 30 Days";
+        java.time.LocalDate now = java.time.LocalDate.now();
+        java.time.LocalDate startDate = null;
+        java.time.LocalDate customStart = null;
+        java.time.LocalDate customEnd = null;
+
+        if ("Last 7 Days".equals(filter)) startDate = now.minusDays(7);
+        else if ("Last 30 Days".equals(filter)) startDate = now.minusDays(30);
+        else if ("This Year".equals(filter)) startDate = now.withDayOfYear(1);
+        else if ("All Time".equals(filter)) startDate = null;
+        else if ("Custom".equals(filter)) {
+            customStart = analyticsStartPicker != null ? analyticsStartPicker.getValue() : null;
+            customEnd = analyticsEndPicker != null ? analyticsEndPicker.getValue() : null;
+            if (customStart == null || customEnd == null) {
+                analyticsIncomeLabel.setText("Rp 0");
+                analyticsExpenseLabel.setText("Rp 0");
+                analyticsNetFlowLabel.setText("Rp 0");
+                analyticsNetFlowLabel.setStyle("-fx-text-fill: #ffffff;");
+                return;
+            }
+        }
+
+        double totalIncome = 0;
+        double totalExpense = 0;
+
+        for (model.Transaksi t : akun.getRiwayatTransaksi()) {
+            boolean inRange = true;
+            if ("Custom".equals(filter)) {
+                if (customStart != null && t.getTanggal().isBefore(customStart)) inRange = false;
+                if (customEnd != null && t.getTanggal().isAfter(customEnd)) inRange = false;
+            } else {
+                if (startDate != null && t.getTanggal().isBefore(startDate)) inRange = false;
+            }
+
+            if (inRange) {
+                if (t instanceof model.Pemasukan) {
+                    totalIncome += t.getNominal();
+                    incomeByCategory.put(t.getKategori(), incomeByCategory.getOrDefault(t.getKategori(), 0.0) + t.getNominal());
+                    dailyIncome.put(t.getTanggal(), dailyIncome.getOrDefault(t.getTanggal(), 0.0) + t.getNominal());
+                } else if (t instanceof model.Pengeluaran) {
+                    totalExpense += t.getNominal();
+                    expensesByCategory.put(t.getKategori(), expensesByCategory.getOrDefault(t.getKategori(), 0.0) + t.getNominal());
+                    dailyExpense.put(t.getTanggal(), dailyExpense.getOrDefault(t.getTanggal(), 0.0) + t.getNominal());
+                }
+            }
+        }
+
+        analyticsIncomeLabel.setText(String.format("Rp %,.0f", totalIncome));
+        analyticsExpenseLabel.setText(String.format("Rp %,.0f", totalExpense));
+        
+        double netFlow = totalIncome - totalExpense;
+        analyticsNetFlowLabel.setText(String.format("Rp %,.0f", netFlow));
+        if (netFlow > 0) {
+            analyticsNetFlowLabel.setStyle("-fx-text-fill: #2ecc71;"); // Green
+        } else if (netFlow < 0) {
+            analyticsNetFlowLabel.setStyle("-fx-text-fill: #e74c3c;"); // Red
+        } else {
+            analyticsNetFlowLabel.setStyle("-fx-text-fill: #ffffff;"); // White
+        }
+
+        // Build Trend Chart
+        Set<java.time.LocalDate> allDates = new TreeSet<>(dailyIncome.keySet());
+        allDates.addAll(dailyExpense.keySet());
+        
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM");
+        for (java.time.LocalDate d : allDates) {
+            String dateStr = d.format(formatter);
+            incomeSeries.getData().add(new XYChart.Data<>(dateStr, dailyIncome.getOrDefault(d, 0.0)));
+            expenseSeries.getData().add(new XYChart.Data<>(dateStr, dailyExpense.getOrDefault(d, 0.0)));
+        }
+
+        analyticsTrendChart.getData().addAll(incomeSeries, expenseSeries);
+
+        // Build Pie Charts
+        if (expensePieChart != null) {
+            for (Map.Entry<String, Double> entry : expensesByCategory.entrySet()) {
+                expensePieChart.getData().add(new PieChart.Data(entry.getKey(), entry.getValue()));
+            }
+        }
+        if (analyticsIncomePieChart != null) {
+            for (Map.Entry<String, Double> entry : incomeByCategory.entrySet()) {
+                analyticsIncomePieChart.getData().add(new PieChart.Data(entry.getKey(), entry.getValue()));
+            }
+        }
     }
 
     private void renderChart() {
@@ -336,11 +549,53 @@ public class MainController {
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         
         Map<String, Double> spendingByCategory = new HashMap<>();
-        for (Transaksi t : akun.getRiwayatTransaksi()) {
-            if (t instanceof Pengeluaran) {
-                spendingByCategory.put(t.getKategori(), 
-                    spendingByCategory.getOrDefault(t.getKategori(), 0.0) + t.getNominal());
+        String filter = chartDateFilter != null ? chartDateFilter.getValue() : "Last 30 Days";
+        java.time.LocalDate now = java.time.LocalDate.now();
+        java.time.LocalDate startDate = null;
+        
+        java.time.LocalDate customStart = null;
+        java.time.LocalDate customEnd = null;
+
+        if ("Last 7 Days".equals(filter)) {
+            startDate = now.minusDays(7);
+        } else if ("Last 30 Days".equals(filter)) {
+            startDate = now.minusDays(30);
+        } else if ("This Year".equals(filter)) {
+            startDate = now.withDayOfYear(1);
+        } else if ("Custom".equals(filter)) {
+            customStart = startDateFilter != null ? startDateFilter.getValue() : null;
+            customEnd = endDateFilter != null ? endDateFilter.getValue() : null;
+            if (customStart == null || customEnd == null) {
+                // Do not render anything if dates are not completely selected
+                spendingChart.getData().add(series);
+                if (expensePieChart != null) expensePieChart.getData().clear();
+                if (pemasukanLabel != null) pemasukanLabel.setText("Rp 0");
+                return;
             }
+        }
+
+        double filteredIncome = 0;
+        for (Transaksi t : akun.getRiwayatTransaksi()) {
+            boolean inRange = true;
+            if ("Custom".equals(filter)) {
+                if (customStart != null && t.getTanggal().isBefore(customStart)) inRange = false;
+                if (customEnd != null && t.getTanggal().isAfter(customEnd)) inRange = false;
+            } else {
+                if (startDate != null && t.getTanggal().isBefore(startDate)) inRange = false;
+            }
+
+            if (inRange) {
+                if (t instanceof model.Pemasukan) {
+                    filteredIncome += t.getNominal();
+                } else if (t instanceof model.Pengeluaran) {
+                    spendingByCategory.put(t.getKategori(), 
+                        spendingByCategory.getOrDefault(t.getKategori(), 0.0) + t.getNominal());
+                }
+            }
+        }
+        
+        if (pemasukanLabel != null) {
+            pemasukanLabel.setText(String.format("Rp %,.0f", filteredIncome));
         }
         
         for (Map.Entry<String, Double> entry : spendingByCategory.entrySet()) {
@@ -362,10 +617,36 @@ public class MainController {
         }
     }
 
+    @FXML
+    public void handleHistoryFilterChange(javafx.event.ActionEvent event) {
+        renderListTransaksi(searchTransactionField != null ? searchTransactionField.getText() : "");
+    }
+
     private void renderListTransaksi() {
+        renderListTransaksi(searchTransactionField != null ? searchTransactionField.getText() : "");
+    }
+
+    private void renderListTransaksi(String query) {
         listRiwayat.getChildren().clear();
+        String lowerQuery = query != null ? query.toLowerCase() : "";
         
+        String categoryFilter = historyCategoryFilter != null ? historyCategoryFilter.getValue() : "All Categories";
+
         for (Transaksi t : akun.getRiwayatTransaksi()) {
+            if (!"All Categories".equals(categoryFilter)) {
+                if ("Pemasukan".equals(categoryFilter) && !(t instanceof model.Pemasukan)) continue;
+                if ("Pengeluaran".equals(categoryFilter) && !(t instanceof model.Pengeluaran)) continue;
+                if (!"Pemasukan".equals(categoryFilter) && !"Pengeluaran".equals(categoryFilter) && !t.getKategori().equalsIgnoreCase(categoryFilter)) continue;
+            }
+
+            if (!lowerQuery.isEmpty()) {
+                boolean matchKategori = t.getKategori() != null && t.getKategori().toLowerCase().contains(lowerQuery);
+                boolean matchDeskripsi = t.getDeskripsi() != null && t.getDeskripsi().toLowerCase().contains(lowerQuery);
+                if (!matchKategori && !matchDeskripsi) {
+                    continue; // Skip items that don't match
+                }
+            }
+            
             HBox row = new HBox(15);
             row.getStyleClass().add("list-item");
             row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
@@ -421,12 +702,21 @@ public class MainController {
 
     @FXML
     public void bukaFormTransaksi(ActionEvent event) {
+        modalOverlay.setOpacity(0.0);
         modalOverlay.setVisible(true);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), modalOverlay);
+        ft.setFromValue(0.0);
+        ft.setToValue(1.0);
+        ft.play();
     }
 
     @FXML
     public void tutupFormTransaksi(ActionEvent event) {
-        modalOverlay.setVisible(false);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), modalOverlay);
+        ft.setFromValue(1.0);
+        ft.setToValue(0.0);
+        ft.setOnFinished(e -> modalOverlay.setVisible(false));
+        ft.play();
     }
 
     @FXML
@@ -613,13 +903,48 @@ public class MainController {
 
     @FXML
     public void logout(javafx.scene.input.MouseEvent event) {
+        logoutModalOverlay.setOpacity(0.0);
+        logoutModalOverlay.setVisible(true);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), logoutModalOverlay);
+        ft.setFromValue(0.0);
+        ft.setToValue(1.0);
+        ft.play();
+    }
+
+    @FXML
+    public void cancelLogout(javafx.event.ActionEvent event) {
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), logoutModalOverlay);
+        ft.setFromValue(1.0);
+        ft.setToValue(0.0);
+        ft.setOnFinished(e -> logoutModalOverlay.setVisible(false));
+        ft.play();
+    }
+
+    @FXML
+    public void confirmLogout(javafx.event.ActionEvent event) {
         model.Session.getInstance().clear();
         try {
             java.net.URL fxmlLocation = getClass().getResource("/view/LoginView.fxml");
-            javafx.scene.Parent root = javafx.fxml.FXMLLoader.load(fxmlLocation);
-            javafx.stage.Stage stage = (javafx.stage.Stage) ((javafx.scene.Node) event.getSource()).getScene().getWindow();
-            stage.getScene().setRoot(root);
-            stage.show();
+            javafx.scene.Parent newRoot = javafx.fxml.FXMLLoader.load(fxmlLocation);
+            newRoot.setOpacity(0.0);
+            
+            javafx.scene.Node sourceNode = (javafx.scene.Node) event.getSource();
+            javafx.scene.Scene scene = sourceNode.getScene();
+            javafx.scene.Parent currentRoot = scene.getRoot();
+            
+            scene.setFill(javafx.scene.paint.Color.web("#121212"));
+            
+            javafx.animation.FadeTransition fadeOut = new javafx.animation.FadeTransition(javafx.util.Duration.millis(300), currentRoot);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            fadeOut.setOnFinished(e -> {
+                scene.setRoot(newRoot);
+                javafx.animation.FadeTransition fadeIn = new javafx.animation.FadeTransition(javafx.util.Duration.millis(300), newRoot);
+                fadeIn.setFromValue(0.0);
+                fadeIn.setToValue(1.0);
+                fadeIn.play();
+            });
+            fadeOut.play();
         } catch (java.io.IOException e) {
             e.printStackTrace();
         }

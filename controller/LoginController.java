@@ -2,6 +2,8 @@ package controller;
 
 import database.DatabaseConnection;
 import javafx.event.ActionEvent;
+import javafx.animation.FadeTransition;
+import javafx.util.Duration;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -35,18 +37,33 @@ public class LoginController {
     @FXML private TextField registerPhoneField;
 
 
+    private void crossFade(VBox fadeOut, VBox fadeIn) {
+        FadeTransition ftOut = new FadeTransition(Duration.millis(250), fadeOut);
+        ftOut.setFromValue(1.0);
+        ftOut.setToValue(0.0);
+        ftOut.setOnFinished(e -> {
+            fadeOut.setVisible(false);
+            
+            fadeIn.setOpacity(0.0);
+            fadeIn.setVisible(true);
+            FadeTransition ftIn = new FadeTransition(Duration.millis(250), fadeIn);
+            ftIn.setFromValue(0.0);
+            ftIn.setToValue(1.0);
+            ftIn.play();
+        });
+        ftOut.play();
+    }
+
     @FXML
     public void toggleToRegister(MouseEvent event) {
-        loginForm.setVisible(false);
-        registerForm.setVisible(true);
+        crossFade(loginForm, registerForm);
         loginErrorLabel.setVisible(false);
         loginErrorLabel.setManaged(false);
     }
 
     @FXML
     public void toggleToLogin(MouseEvent event) {
-        registerForm.setVisible(false);
-        loginForm.setVisible(true);
+        crossFade(registerForm, loginForm);
         registerErrorLabel.setVisible(false);
         registerErrorLabel.setManaged(false);
     }
@@ -112,10 +129,27 @@ public class LoginController {
                 System.err.println("MainView.fxml not found!");
                 return;
             }
-            Parent root = FXMLLoader.load(fxmlLocation);
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.getScene().setRoot(root);
-            stage.show();
+            Parent newRoot = FXMLLoader.load(fxmlLocation);
+            newRoot.setOpacity(0.0);
+            
+            Node sourceNode = (Node) event.getSource();
+            Scene scene = sourceNode.getScene();
+            Parent currentRoot = scene.getRoot();
+            
+            // Set scene background to dark so it doesn't flash white during transition
+            scene.setFill(javafx.scene.paint.Color.web("#121212"));
+            
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(300), currentRoot);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            fadeOut.setOnFinished(e -> {
+                scene.setRoot(newRoot);
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(300), newRoot);
+                fadeIn.setFromValue(0.0);
+                fadeIn.setToValue(1.0);
+                fadeIn.play();
+            });
+            fadeOut.play();
         } catch (IOException e) {
             e.printStackTrace();
         }
