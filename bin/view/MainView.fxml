@@ -423,7 +423,7 @@
                 <Insets top="40" right="40" bottom="40" left="40" />
             </padding>
             <HBox alignment="CENTER_LEFT">
-                <Label text="Add Transaction" styleClass="modal-title" />
+                <Label fx:id="modalTitleLabel" text="Add Transaction" styleClass="modal-title" />
                 <Region HBox.hgrow="ALWAYS" />
                 <Button text="✕" styleClass="btn-close" onAction="#tutupFormTransaksi" />
             </HBox>

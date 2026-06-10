@@ -42,6 +42,9 @@ public class MainController {
     @FXML private DatePicker startDateFilter;
     @FXML private DatePicker endDateFilter;
     @FXML private javafx.scene.layout.StackPane logoutModalOverlay;
+    @FXML private javafx.scene.layout.StackPane deleteModalOverlay;
+    @FXML private javafx.scene.control.Label modalTitleLabel;
+    private model.Transaksi transaksiToDelete;
     @FXML private javafx.scene.layout.Region dummyFocus;
 
     // Routing Views
@@ -773,10 +776,8 @@ public class MainController {
             deleteIcon.setScaleY(0.8);
             deleteBtn.setGraphic(deleteIcon);
             deleteBtn.setOnAction(e -> {
-                akun.hapusTransaksiDB(t);
-                updateDashboard();
-                renderAnalytics();
-                filterTransactions(); // re-renders list applying current filters
+                transaksiToDelete = t;
+                showDeleteConfirmation();
             });
 
             actionBox.getChildren().addAll(editBtn, deleteBtn);
@@ -792,6 +793,7 @@ public class MainController {
     @FXML
     public void bukaFormTransaksi(ActionEvent event) {
         currentEditId = -1;
+        if (modalTitleLabel != null) modalTitleLabel.setText("Add Transaction");
         nominalFieldModal.clear();
         kategoriComboModal.setValue("Food & Drinks");
         deskripsiAreaModal.clear();
@@ -802,6 +804,7 @@ public class MainController {
 
     public void bukaFormEdit(Transaksi t) {
         currentEditId = t.getId();
+        if (modalTitleLabel != null) modalTitleLabel.setText("Edit Transaction");
         nominalFieldModal.setText(String.format("%.0f", t.getNominal()));
         kategoriComboModal.setValue(t.getKategori());
         deskripsiAreaModal.setText(t.getDeskripsi());
@@ -1064,4 +1067,46 @@ public class MainController {
             e.printStackTrace();
         }
     }
+
+    private void showDeleteConfirmation() {
+        if (deleteModalOverlay != null) {
+            deleteModalOverlay.setOpacity(0.0);
+            deleteModalOverlay.setVisible(true);
+            javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), deleteModalOverlay);
+            ft.setFromValue(0.0);
+            ft.setToValue(1.0);
+            ft.play();
+        }
+    }
+
+    @FXML
+    public void cancelDelete(ActionEvent event) {
+        if (deleteModalOverlay != null) {
+            javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), deleteModalOverlay);
+            ft.setFromValue(1.0);
+            ft.setToValue(0.0);
+            ft.setOnFinished(e -> deleteModalOverlay.setVisible(false));
+            ft.play();
+            transaksiToDelete = null;
+        }
+    }
+
+    @FXML
+    public void confirmDelete(ActionEvent event) {
+        if (transaksiToDelete != null) {
+            akun.hapusTransaksiDB(transaksiToDelete);
+            updateDashboard();
+            renderAnalytics();
+            filterTransactions();
+            transaksiToDelete = null;
+        }
+        if (deleteModalOverlay != null) {
+            javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), deleteModalOverlay);
+            ft.setFromValue(1.0);
+            ft.setToValue(0.0);
+            ft.setOnFinished(e -> deleteModalOverlay.setVisible(false));
+            ft.play();
+        }
+    }
+
 }
