@@ -42,6 +42,9 @@ public class MainController {
     @FXML private DatePicker startDateFilter;
     @FXML private DatePicker endDateFilter;
     @FXML private javafx.scene.layout.StackPane logoutModalOverlay;
+    @FXML private javafx.scene.layout.StackPane deleteModalOverlay;
+    @FXML private javafx.scene.control.Label modalTitleLabel;
+    private model.Transaksi transaksiToDelete;
     @FXML private javafx.scene.layout.Region dummyFocus;
 
     // Routing Views
@@ -734,18 +737,6 @@ public class MainController {
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
             
-            // Edit Button
-            Button editBtn = new Button("");
-            editBtn.getStyleClass().add("btn-secondary");
-            editBtn.setStyle("-fx-padding: 6 12 6 12; -fx-cursor: hand; -fx-min-width: 40;");
-            
-            SVGPath editIcon = new SVGPath();
-            editIcon.setContent("M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z");
-            editIcon.setStyle("-fx-fill: transparent; -fx-stroke: white; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;");
-            editBtn.setGraphic(editIcon);
-            
-            editBtn.setOnAction(e -> bukaFormEdit(t));
-
             // Amount
             Label amountLabel = new Label();
             amountLabel.setText(t.formatTampilan());
@@ -757,8 +748,42 @@ public class MainController {
             amountLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
             amountLabel.setPrefWidth(200);
 
+            // Action Box (Edit & Delete)
+            HBox actionBox = new HBox(10);
+            actionBox.setAlignment(javafx.geometry.Pos.CENTER);
+            actionBox.setPrefWidth(100);
+
+            Button editBtn = new Button("");
+            editBtn.getStyleClass().add("btn-secondary");
+            editBtn.setStyle("-fx-padding: 6; -fx-cursor: hand; -fx-min-width: 34; -fx-min-height: 34; -fx-max-width: 34; -fx-max-height: 34; -fx-border-radius: 8; -fx-background-radius: 8; -fx-alignment: center;");
+            
+            SVGPath editIcon = new SVGPath();
+            editIcon.setContent("M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z");
+            editIcon.setStyle("-fx-fill: transparent; -fx-stroke: white; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;");
+            editIcon.setScaleX(0.8);
+            editIcon.setScaleY(0.8);
+            editBtn.setGraphic(editIcon);
+            editBtn.setOnAction(e -> bukaFormEdit(t));
+
+            Button deleteBtn = new Button("");
+            deleteBtn.getStyleClass().add("btn-secondary");
+            deleteBtn.setStyle("-fx-padding: 6; -fx-cursor: hand; -fx-min-width: 34; -fx-min-height: 34; -fx-max-width: 34; -fx-max-height: 34; -fx-border-radius: 8; -fx-background-radius: 8; -fx-border-color: #FF416C; -fx-alignment: center;");
+            
+            SVGPath deleteIcon = new SVGPath();
+            deleteIcon.setContent("M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16");
+            deleteIcon.setStyle("-fx-fill: transparent; -fx-stroke: #FF416C; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;");
+            deleteIcon.setScaleX(0.8);
+            deleteIcon.setScaleY(0.8);
+            deleteBtn.setGraphic(deleteIcon);
+            deleteBtn.setOnAction(e -> {
+                transaksiToDelete = t;
+                showDeleteConfirmation();
+            });
+
+            actionBox.getChildren().addAll(editBtn, deleteBtn);
+
             // Add all to row
-            row.getChildren().addAll(iconBox, titleBox, dateLabel, spacer, editBtn, amountLabel);
+            row.getChildren().addAll(iconBox, titleBox, dateLabel, spacer, amountLabel, actionBox);
             
             // Insert at top
             listRiwayat.getChildren().add(0, row);
@@ -768,6 +793,7 @@ public class MainController {
     @FXML
     public void bukaFormTransaksi(ActionEvent event) {
         currentEditId = -1;
+        if (modalTitleLabel != null) modalTitleLabel.setText("Add Transaction");
         nominalFieldModal.clear();
         kategoriComboModal.setValue("Food & Drinks");
         deskripsiAreaModal.clear();
@@ -778,6 +804,7 @@ public class MainController {
 
     public void bukaFormEdit(Transaksi t) {
         currentEditId = t.getId();
+        if (modalTitleLabel != null) modalTitleLabel.setText("Edit Transaction");
         nominalFieldModal.setText(String.format("%.0f", t.getNominal()));
         kategoriComboModal.setValue(t.getKategori());
         deskripsiAreaModal.setText(t.getDeskripsi());
@@ -1013,6 +1040,9 @@ public class MainController {
 
     @FXML
     public void confirmLogout(javafx.event.ActionEvent event) {
+        java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userRoot().node("kutamalo");
+        prefs.remove("kutamalo_username");
+        prefs.remove("kutamalo_password");
         model.Session.getInstance().clear();
         try {
             java.net.URL fxmlLocation = getClass().getResource("/view/LoginView.fxml");
@@ -1040,4 +1070,46 @@ public class MainController {
             e.printStackTrace();
         }
     }
+
+    private void showDeleteConfirmation() {
+        if (deleteModalOverlay != null) {
+            deleteModalOverlay.setOpacity(0.0);
+            deleteModalOverlay.setVisible(true);
+            javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), deleteModalOverlay);
+            ft.setFromValue(0.0);
+            ft.setToValue(1.0);
+            ft.play();
+        }
+    }
+
+    @FXML
+    public void cancelDelete(ActionEvent event) {
+        if (deleteModalOverlay != null) {
+            javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), deleteModalOverlay);
+            ft.setFromValue(1.0);
+            ft.setToValue(0.0);
+            ft.setOnFinished(e -> deleteModalOverlay.setVisible(false));
+            ft.play();
+            transaksiToDelete = null;
+        }
+    }
+
+    @FXML
+    public void confirmDelete(ActionEvent event) {
+        if (transaksiToDelete != null) {
+            akun.hapusTransaksiDB(transaksiToDelete);
+            updateDashboard();
+            renderAnalytics();
+            filterTransactions();
+            transaksiToDelete = null;
+        }
+        if (deleteModalOverlay != null) {
+            javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), deleteModalOverlay);
+            ft.setFromValue(1.0);
+            ft.setToValue(0.0);
+            ft.setOnFinished(e -> deleteModalOverlay.setVisible(false));
+            ft.play();
+        }
+    }
+
 }

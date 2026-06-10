@@ -139,6 +139,35 @@ public class Akun {
         }
     }
 
+    public void hapusTransaksiDB(Transaksi transaksi) {
+        if (transaksi.getId() == 0) return;
+        String query = "DELETE FROM transaksi WHERE id = ? AND user_id = ?";
+        try (java.sql.Connection conn = database.DatabaseConnection.getConnection();
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setInt(1, transaksi.getId());
+            pstmt.setInt(2, model.Session.getInstance().getCurrentUser().getId());
+            pstmt.executeUpdate();
+            
+            this.riwayatTransaksi.remove(transaksi);
+            
+            // Recalculate totals
+            this.saldoUtama = 0;
+            this.totalPemasukan = 0;
+            this.totalPengeluaran = 0;
+            for (Transaksi t : riwayatTransaksi) {
+                if (t instanceof Pemasukan) {
+                    this.saldoUtama += t.getNominal();
+                    this.totalPemasukan += t.getNominal();
+                } else if (t instanceof Pengeluaran) {
+                    this.saldoUtama -= t.getNominal();
+                    this.totalPengeluaran += t.getNominal();
+                }
+            }
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void hapusSemuaTransaksiDB() {
         if (model.Session.getInstance().getCurrentUser() == null) return;
         int userId = model.Session.getInstance().getCurrentUser().getId();

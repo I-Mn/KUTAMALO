@@ -10,7 +10,21 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        URL fxmlLocation = getClass().getResource("/view/LoginView.fxml");
+        // Check remember me
+        java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userRoot().node("kutamalo");
+        String savedUser = prefs.get("kutamalo_username", null);
+        String savedPass = prefs.get("kutamalo_password", null);
+        
+        String startView = "/view/LoginView.fxml";
+        if (savedUser != null && savedPass != null) {
+            model.User user = database.DatabaseConnection.login(savedUser, savedPass);
+            if (user != null) {
+                model.Session.getInstance().setCurrentUser(user);
+                startView = "/view/MainView.fxml";
+            }
+        }
+
+        URL fxmlLocation = getClass().getResource(startView);
         if (fxmlLocation == null) {
             System.err.println("MainView.fxml tidak ditemukan!");
             System.exit(1);
