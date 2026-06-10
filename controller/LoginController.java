@@ -81,6 +81,15 @@ public class LoginController {
             showError(registerErrorLabel, "Please fill in all fields.", false);
             return;
         }
+        if (!email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            showError(registerErrorLabel, "Please enter a valid email format.", false);
+            return;
+        }
+
+        if (!phone.matches("^\\+?\\d{10,15}$")) {
+            showError(registerErrorLabel, "Please enter a valid phone number.", false);
+            return;
+        }
 
         boolean success = DatabaseConnection.register(username, password, email, phone);
         if (success) {
