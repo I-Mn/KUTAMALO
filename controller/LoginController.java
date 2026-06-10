@@ -22,12 +22,26 @@ import java.io.IOException;
 import java.net.URL;
 
 public class LoginController {
+    @FXML
+    public void initialize() {
+        if (loginPasswordField != null) {
+            loginPasswordField.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal == null || newVal.isEmpty()) {
+                    loginPasswordField.setStyle("-fx-font-size: 14px; -fx-padding: 10 15;");
+                } else {
+                    loginPasswordField.setStyle("-fx-font-size: 10px; -fx-padding: 12 15;");
+                }
+            });
+        }
+    }
+
 
     @FXML private VBox loginForm;
     @FXML private VBox registerForm;
 
     @FXML private TextField loginUsernameField;
     @FXML private PasswordField loginPasswordField;
+    @FXML private javafx.scene.control.CheckBox rememberMeCheck;
     @FXML private Label loginErrorLabel;
 
     @FXML private TextField registerUsernameField;
@@ -81,6 +95,17 @@ public class LoginController {
         User user = DatabaseConnection.login(username, password);
         if (user != null) {
             Session.getInstance().setCurrentUser(user);
+            
+            // Save preferences if remember me is checked
+            java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userRoot().node("kutamalo");
+            if (rememberMeCheck != null && rememberMeCheck.isSelected()) {
+                prefs.put("kutamalo_username", username);
+                prefs.put("kutamalo_password", password);
+            } else {
+                prefs.remove("kutamalo_username");
+                prefs.remove("kutamalo_password");
+            }
+            
             loadMainView(event);
         } else {
             showError(loginErrorLabel, "Invalid username or password.", false);

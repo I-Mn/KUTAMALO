@@ -54,6 +54,7 @@
 
 .nav-icon {
     -fx-fill: #888888;
+    -fx-stroke: #888888;
 }
 .nav-label {
     -fx-text-fill: #888888;
@@ -63,6 +64,7 @@
 
 .nav-active .nav-icon {
     -fx-fill: #F1C40F;
+    -fx-stroke: #F1C40F;
 }
 .nav-active .nav-label {
     -fx-text-fill: #ffffff;
@@ -751,3 +753,4 @@
     -fx-background-radius: 5px;
     -fx-padding: 4px;
 }
+

@@ -1040,6 +1040,9 @@ public class MainController {
 
     @FXML
     public void confirmLogout(javafx.event.ActionEvent event) {
+        java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userRoot().node("kutamalo");
+        prefs.remove("kutamalo_username");
+        prefs.remove("kutamalo_password");
         model.Session.getInstance().clear();
         try {
             java.net.URL fxmlLocation = getClass().getResource("/view/LoginView.fxml");
