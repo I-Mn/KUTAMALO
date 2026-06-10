@@ -82,6 +82,15 @@ public class MainController {
     @FXML private DatePicker tanggalPickerModal;
     @FXML private TextArea deskripsiAreaModal;
 
+    @FXML private TextField searchField;
+    @FXML private ComboBox<String> filterTypeCombo;
+    @FXML private ComboBox<String> filterCategoryCombo;
+    @FXML private DatePicker filterStartDate;
+    @FXML private DatePicker filterEndDate;
+    @FXML private TextField filterMinAmount;
+    @FXML private TextField filterMaxAmount;
+
+    private int currentEditId = -1;
     private Akun akun;
     private DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yy");
 
@@ -144,6 +153,18 @@ public class MainController {
                 }
             });
             kategoriComboModal.setButtonCell(kategoriComboModal.getCellFactory().call(null));
+        }
+
+        if (filterTypeCombo != null) {
+            filterTypeCombo.setItems(FXCollections.observableArrayList("All Types", "Income", "Expense"));
+            filterTypeCombo.setValue("All Types");
+        }
+        if (filterCategoryCombo != null) {
+            java.util.List<String> cats = new java.util.ArrayList<>();
+            cats.add("All Categories");
+            cats.addAll(java.util.Arrays.asList(daftarKategori));
+            filterCategoryCombo.setItems(FXCollections.observableArrayList(cats));
+            filterCategoryCombo.setValue("All Categories");
         }
 
         updateDashboard();
@@ -362,10 +383,59 @@ public class MainController {
         }
     }
 
+    @FXML
+    public void filterTransactions() {
+        if (searchField == null || filterTypeCombo == null || filterCategoryCombo == null) return;
+        String query = searchField.getText() == null ? "" : searchField.getText().toLowerCase();
+        String type = filterTypeCombo.getValue() == null ? "All Types" : filterTypeCombo.getValue();
+        String category = filterCategoryCombo.getValue() == null ? "All Categories" : filterCategoryCombo.getValue();
+
+        LocalDate startDate = filterStartDate != null ? filterStartDate.getValue() : null;
+        LocalDate endDate = filterEndDate != null ? filterEndDate.getValue() : null;
+
+        Double minAmount = null;
+        if (filterMinAmount != null && filterMinAmount.getText() != null && !filterMinAmount.getText().isEmpty()) {
+            try { minAmount = Double.parseDouble(filterMinAmount.getText()); } catch (NumberFormatException e) {}
+        }
+
+        Double maxAmount = null;
+        if (filterMaxAmount != null && filterMaxAmount.getText() != null && !filterMaxAmount.getText().isEmpty()) {
+            try { maxAmount = Double.parseDouble(filterMaxAmount.getText()); } catch (NumberFormatException e) {}
+        }
+
+        java.util.List<Transaksi> filtered = new java.util.ArrayList<>();
+        for (Transaksi t : akun.getRiwayatTransaksi()) {
+            boolean matchesSearch = t.getKategori().toLowerCase().contains(query) || 
+                                    t.getDeskripsi().toLowerCase().contains(query);
+            
+            boolean matchesType = "All Types".equals(type) || 
+                                 ("Income".equals(type) && t instanceof Pemasukan) || 
+                                 ("Expense".equals(type) && t instanceof Pengeluaran);
+                                 
+            boolean matchesCategory = "All Categories".equals(category) || 
+                                      t.getKategori().equals(category);
+
+            boolean matchesStartDate = (startDate == null) || !t.getTanggal().isBefore(startDate);
+            boolean matchesEndDate = (endDate == null) || !t.getTanggal().isAfter(endDate);
+            
+            boolean matchesMinAmount = (minAmount == null) || (t.getNominal() >= minAmount);
+            boolean matchesMaxAmount = (maxAmount == null) || (t.getNominal() <= maxAmount);
+
+            if (matchesSearch && matchesType && matchesCategory && matchesStartDate && matchesEndDate && matchesMinAmount && matchesMaxAmount) {
+                filtered.add(t);
+            }
+        }
+        renderListTransaksi(filtered);
+    }
+
     private void renderListTransaksi() {
+        renderListTransaksi(akun.getRiwayatTransaksi());
+    }
+
+    private void renderListTransaksi(java.util.List<Transaksi> transaksiList) {
         listRiwayat.getChildren().clear();
         
-        for (Transaksi t : akun.getRiwayatTransaksi()) {
+        for (Transaksi t : transaksiList) {
             HBox row = new HBox(15);
             row.getStyleClass().add("list-item");
             row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
@@ -397,22 +467,26 @@ public class MainController {
 
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
+            
+            // Edit Button
+            Button editBtn = new Button("Edit");
+            editBtn.getStyleClass().add("btn-secondary");
+            editBtn.setStyle("-fx-font-size: 11px; -fx-padding: 3 8 3 8; -fx-cursor: hand;");
+            editBtn.setOnAction(e -> bukaFormEdit(t));
 
             // Amount
-            String nominalStr = String.format("%,.0f", t.getNominal());
             Label amountLabel = new Label();
+            amountLabel.setText(t.formatTampilan());
             if (t instanceof Pemasukan) {
-                amountLabel.setText("+Rp " + nominalStr);
                 amountLabel.getStyleClass().add("item-amount-masuk");
             } else {
-                amountLabel.setText("-Rp " + nominalStr);
                 amountLabel.getStyleClass().add("item-amount-keluar");
             }
             amountLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
-            amountLabel.setPrefWidth(120);
+            amountLabel.setPrefWidth(200);
 
             // Add all to row
-            row.getChildren().addAll(iconBox, titleBox, dateLabel, spacer, amountLabel);
+            row.getChildren().addAll(iconBox, titleBox, dateLabel, spacer, editBtn, amountLabel);
             
             // Insert at top
             listRiwayat.getChildren().add(0, row);
@@ -421,6 +495,26 @@ public class MainController {
 
     @FXML
     public void bukaFormTransaksi(ActionEvent event) {
+        currentEditId = -1;
+        nominalFieldModal.clear();
+        kategoriComboModal.setValue("Food & Drinks");
+        deskripsiAreaModal.clear();
+        tanggalPickerModal.setValue(LocalDate.now());
+        jenisComboModal.setValue("Pengeluaran");
+        modalOverlay.setVisible(true);
+    }
+
+    public void bukaFormEdit(Transaksi t) {
+        currentEditId = t.getId();
+        nominalFieldModal.setText(String.format("%.0f", t.getNominal()));
+        kategoriComboModal.setValue(t.getKategori());
+        deskripsiAreaModal.setText(t.getDeskripsi());
+        tanggalPickerModal.setValue(t.getTanggal());
+        if (t instanceof Pemasukan) {
+            jenisComboModal.setValue("Pemasukan");
+        } else {
+            jenisComboModal.setValue("Pengeluaran");
+        }
         modalOverlay.setVisible(true);
     }
 
@@ -451,7 +545,12 @@ public class MainController {
                 t = new Pengeluaran(nominal, kategori, tanggal, deskripsi);
             }
             
-            akun.tambahTransaksiDB(t, jenis);
+            if (currentEditId == -1) {
+                akun.tambahTransaksiDB(t, jenis);
+            } else {
+                t.setId(currentEditId);
+                akun.updateTransaksiDB(t, jenis);
+            }
             
             // Clear input fields
             nominalFieldModal.clear();
