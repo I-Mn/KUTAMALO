@@ -70,9 +70,7 @@ public class MainController {
     @FXML private BarChart<String, Number> spendingChart;
     @FXML private PieChart expensePieChart;
     @FXML private VBox listRiwayat;
-    @FXML private DatePicker startDateFilter;
-    @FXML private DatePicker endDateFilter;
-    @FXML private ComboBox<String> chartDateFilter;
+
 
     // Analytics Dashboard Elements
     @FXML private DatePicker analyticsStartPicker;
