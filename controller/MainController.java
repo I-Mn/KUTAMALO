@@ -734,18 +734,6 @@ public class MainController {
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
             
-            // Edit Button
-            Button editBtn = new Button("");
-            editBtn.getStyleClass().add("btn-secondary");
-            editBtn.setStyle("-fx-padding: 6 12 6 12; -fx-cursor: hand; -fx-min-width: 40;");
-            
-            SVGPath editIcon = new SVGPath();
-            editIcon.setContent("M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z");
-            editIcon.setStyle("-fx-fill: transparent; -fx-stroke: white; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;");
-            editBtn.setGraphic(editIcon);
-            
-            editBtn.setOnAction(e -> bukaFormEdit(t));
-
             // Amount
             Label amountLabel = new Label();
             amountLabel.setText(t.formatTampilan());
@@ -757,8 +745,40 @@ public class MainController {
             amountLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
             amountLabel.setPrefWidth(200);
 
+            // Action Box (Edit & Delete)
+            HBox actionBox = new HBox(10);
+            actionBox.setAlignment(javafx.geometry.Pos.CENTER);
+            actionBox.setPrefWidth(100);
+
+            Button editBtn = new Button("");
+            editBtn.getStyleClass().add("btn-secondary");
+            editBtn.setStyle("-fx-padding: 6 12 6 12; -fx-cursor: hand; -fx-min-width: 40;");
+            
+            SVGPath editIcon = new SVGPath();
+            editIcon.setContent("M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z");
+            editIcon.setStyle("-fx-fill: transparent; -fx-stroke: white; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;");
+            editBtn.setGraphic(editIcon);
+            editBtn.setOnAction(e -> bukaFormEdit(t));
+
+            Button deleteBtn = new Button("");
+            deleteBtn.getStyleClass().add("btn-secondary");
+            deleteBtn.setStyle("-fx-padding: 6 12 6 12; -fx-cursor: hand; -fx-min-width: 40; -fx-border-color: #FF416C;");
+            
+            SVGPath deleteIcon = new SVGPath();
+            deleteIcon.setContent("M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16");
+            deleteIcon.setStyle("-fx-fill: transparent; -fx-stroke: #FF416C; -fx-stroke-width: 1.5; -fx-stroke-line-cap: round; -fx-stroke-line-join: round;");
+            deleteBtn.setGraphic(deleteIcon);
+            deleteBtn.setOnAction(e -> {
+                akun.hapusTransaksiDB(t);
+                updateDashboard();
+                renderAnalytics();
+                filterTransactions(); // re-renders list applying current filters
+            });
+
+            actionBox.getChildren().addAll(editBtn, deleteBtn);
+
             // Add all to row
-            row.getChildren().addAll(iconBox, titleBox, dateLabel, spacer, editBtn, amountLabel);
+            row.getChildren().addAll(iconBox, titleBox, dateLabel, spacer, amountLabel, actionBox);
             
             // Insert at top
             listRiwayat.getChildren().add(0, row);

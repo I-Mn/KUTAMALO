@@ -174,7 +174,8 @@
                                     <Label text="Category" prefWidth="250" />
                                     <Label text="Date" prefWidth="120" />
                                     <Region HBox.hgrow="ALWAYS" />
-                                    <Label text="Amount" alignment="CENTER_RIGHT" prefWidth="120" />
+                                    <Label text="Amount" alignment="CENTER_RIGHT" prefWidth="200" />
+                                    <Label text="Action" alignment="CENTER" prefWidth="100" />
                                 </HBox>
                                 <VBox fx:id="listRiwayat" spacing="0" />
                             </VBox>
