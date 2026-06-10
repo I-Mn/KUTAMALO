@@ -377,7 +377,7 @@
     -fx-font-size: 15px;
     -fx-font-weight: bold;
     -fx-padding: 12 30;
-    -fx-background-radius: 30;
+    -fx-background-radius: 12;
     -fx-cursor: hand;
 }
 .btn-primary:hover {

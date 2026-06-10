@@ -2,6 +2,8 @@ package controller;
 
 import javafx.stage.FileChooser;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import javafx.scene.image.Image;
@@ -43,6 +45,9 @@ public class MainController {
     @FXML private DatePicker endDateFilter;
     @FXML private javafx.scene.layout.StackPane logoutModalOverlay;
     @FXML private javafx.scene.layout.StackPane deleteModalOverlay;
+    @FXML private javafx.scene.layout.StackPane deleteAllModalOverlay;
+    @FXML private javafx.scene.layout.StackPane successModalOverlay;
+    @FXML private javafx.scene.control.Label successModalMessage;
     @FXML private javafx.scene.control.Label modalTitleLabel;
     private model.Transaksi transaksiToDelete;
     @FXML private javafx.scene.layout.Region dummyFocus;
@@ -305,9 +310,91 @@ public class MainController {
     }
 
     @FXML
+    public void showDeleteAllModal(ActionEvent event) {
+        deleteAllModalOverlay.setVisible(true);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), deleteAllModalOverlay);
+        ft.setFromValue(0.0);
+        ft.setToValue(1.0);
+        ft.play();
+    }
+
+    @FXML
+    public void clearAutoLogin(ActionEvent event) {
+        java.util.prefs.Preferences prefs = java.util.prefs.Preferences.userRoot().node("kutamalo");
+        prefs.remove("kutamalo_username");
+        prefs.remove("kutamalo_password");
+        
+showSuccessModal("Auto-Login session cleared! You will need to type your password next time.");
+    }
+
+    @FXML
+    public void exportToCSV(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Transactions CSV");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        fileChooser.setInitialFileName("kutamalo_transactions.csv");
+        
+        File file = fileChooser.showSaveDialog(null);
+        if (file != null) {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
+                writer.println("ID,Jenis,Nominal,Kategori,Tanggal,Deskripsi");
+                for (model.Transaksi t : akun.getRiwayatTransaksi()) {
+                    writer.println(String.format("%s,%s,%s,%s,%s,\"%s\"", 
+                        t.getId(), (t instanceof model.Pemasukan ? "Pemasukan" : "Pengeluaran"), t.getNominal(), t.getKategori(), t.getTanggal(), t.getDeskripsi()));
+                }
+showSuccessModal("Data successfully exported to:\n" + file.getAbsolutePath());
+            } catch (Exception e) {
+                Alert error = new Alert(Alert.AlertType.ERROR, "Failed to export CSV: " + e.getMessage());
+                error.showAndWait();
+            }
+        }
+    }
+
+    @FXML
+    public void cancelDeleteAll(ActionEvent event) {
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), deleteAllModalOverlay);
+        ft.setFromValue(1.0);
+        ft.setToValue(0.0);
+        ft.setOnFinished(e -> deleteAllModalOverlay.setVisible(false));
+        ft.play();
+    }
+
+    
+    public void showSuccessModal(String message) {
+        successModalMessage.setText(message);
+        successModalOverlay.setVisible(true);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), successModalOverlay);
+        ft.setFromValue(0.0);
+        ft.setToValue(1.0);
+        ft.play();
+    }
+
+    @FXML
+    public void closeSuccessModal(ActionEvent event) {
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), successModalOverlay);
+        ft.setFromValue(1.0);
+        ft.setToValue(0.0);
+        ft.setOnFinished(e -> successModalOverlay.setVisible(false));
+        ft.play();
+    }
+
     public void navToSettings(MouseEvent event) {
         setActiveNav(navSettings);
         switchView(settingsView);
+    }
+
+    
+    private void addTooltipToNode(javafx.scene.Node node, String text) {
+        if (node != null) {
+            javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip(text);
+            tooltip.setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #F1C40F; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 8 12; -fx-background-radius: 8; -fx-border-color: #333333; -fx-border-radius: 8;");
+            tooltip.setShowDelay(javafx.util.Duration.ZERO);
+            tooltip.setHideDelay(javafx.util.Duration.ZERO);
+            javafx.scene.control.Tooltip.install(node, tooltip);
+
+            node.setOnMouseEntered(e -> node.setStyle("-fx-opacity: 0.7; -fx-cursor: hand;"));
+            node.setOnMouseExited(e -> node.setStyle("-fx-opacity: 1.0;"));
+        }
     }
 
     private void setActiveNav(HBox activeNav) {
@@ -556,10 +643,23 @@ public class MainController {
             for (Map.Entry<String, Double> entry : expensesByCategory.entrySet()) {
                 expensePieChart.getData().add(new PieChart.Data(entry.getKey(), entry.getValue()));
             }
+            for (PieChart.Data data : expensePieChart.getData()) {
+                addTooltipToNode(data.getNode(), data.getName() + "\nRp " + String.format("%,.0f", data.getPieValue()).replace(',', '.'));
+            }
         }
         if (analyticsIncomePieChart != null) {
             for (Map.Entry<String, Double> entry : incomeByCategory.entrySet()) {
                 analyticsIncomePieChart.getData().add(new PieChart.Data(entry.getKey(), entry.getValue()));
+            }
+            for (PieChart.Data data : analyticsIncomePieChart.getData()) {
+                addTooltipToNode(data.getNode(), data.getName() + "\nRp " + String.format("%,.0f", data.getPieValue()).replace(',', '.'));
+            }
+        }
+        
+        // Add tooltips to Area Chart data points
+        for (XYChart.Series<String, Number> s : analyticsTrendChart.getData()) {
+            for (XYChart.Data<String, Number> data : s.getData()) {
+                addTooltipToNode(data.getNode(), "Rp " + String.format("%,.0f", data.getYValue().doubleValue()).replace(',', '.'));
             }
         }
     }
@@ -588,6 +688,23 @@ public class MainController {
             if (customStart == null || customEnd == null) {
                 // Do not render anything if dates are not completely selected
                 spendingChart.getData().add(series);
+        
+        // Add Tooltips and Hover effects for Spending Chart
+        for (XYChart.Data<String, Number> data : series.getData()) {
+            javafx.scene.Node node = data.getNode();
+            if (node != null) {
+                javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip(
+                    "Rp " + String.format("%,.0f", data.getYValue().doubleValue()).replace(',', '.')
+                );
+                tooltip.setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #F1C40F; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 8 12; -fx-background-radius: 8; -fx-border-color: #333333; -fx-border-radius: 8;");
+                tooltip.setShowDelay(javafx.util.Duration.ZERO);
+                tooltip.setHideDelay(javafx.util.Duration.ZERO);
+                javafx.scene.control.Tooltip.install(node, tooltip);
+
+                node.setOnMouseEntered(e -> node.setStyle("-fx-opacity: 0.7; -fx-cursor: hand;"));
+                node.setOnMouseExited(e -> node.setStyle("-fx-opacity: 1.0;"));
+            }
+        }
                 if (expensePieChart != null) expensePieChart.getData().clear();
                 if (pemasukanLabel != null) pemasukanLabel.setText("Rp 0");
                 return;
@@ -627,12 +744,32 @@ public class MainController {
         }
 
         spendingChart.getData().add(series);
+        
+        // Add Tooltips and Hover effects for Spending Chart
+        for (XYChart.Data<String, Number> data : series.getData()) {
+            javafx.scene.Node node = data.getNode();
+            if (node != null) {
+                javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip(
+                    "Rp " + String.format("%,.0f", data.getYValue().doubleValue()).replace(',', '.')
+                );
+                tooltip.setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #F1C40F; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 8 12; -fx-background-radius: 8; -fx-border-color: #333333; -fx-border-radius: 8;");
+                tooltip.setShowDelay(javafx.util.Duration.ZERO);
+                tooltip.setHideDelay(javafx.util.Duration.ZERO);
+                javafx.scene.control.Tooltip.install(node, tooltip);
+
+                node.setOnMouseEntered(e -> node.setStyle("-fx-opacity: 0.7; -fx-cursor: hand;"));
+                node.setOnMouseExited(e -> node.setStyle("-fx-opacity: 1.0;"));
+            }
+        }
 
         // Update PieChart
         if (expensePieChart != null) {
             expensePieChart.getData().clear();
             for (Map.Entry<String, Double> entry : spendingByCategory.entrySet()) {
                 expensePieChart.getData().add(new PieChart.Data(entry.getKey(), entry.getValue()));
+            }
+            for (PieChart.Data data : expensePieChart.getData()) {
+                addTooltipToNode(data.getNode(), data.getName() + "\nRp " + String.format("%,.0f", data.getPieValue()).replace(',', '.'));
             }
         }
     }
@@ -745,7 +882,7 @@ public class MainController {
             } else {
                 amountLabel.getStyleClass().add("item-amount-keluar");
             }
-            amountLabel.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+            amountLabel.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             amountLabel.setPrefWidth(200);
 
             // Action Box (Edit & Delete)
@@ -879,14 +1016,14 @@ public class MainController {
 
     @FXML
     public void clearAllData(ActionEvent event) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Hapus semua data secara permanen?", ButtonType.YES, ButtonType.NO);
-        alert.showAndWait();
-        if (alert.getResult() == ButtonType.YES) {
-            akun.hapusSemuaTransaksiDB();
-            updateDashboard();
-            Alert success = new Alert(Alert.AlertType.INFORMATION, "Semua data berhasil dihapus!");
-            success.showAndWait();
-        }
+        akun.hapusSemuaTransaksiDB();
+        updateDashboard();
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), deleteAllModalOverlay);
+        ft.setFromValue(1.0);
+        ft.setToValue(0.0);
+        ft.setOnFinished(e -> deleteAllModalOverlay.setVisible(false));
+        ft.play();
+showSuccessModal("Semua data berhasil dihapus!");
     }
 
     private void fetchExchangeRate() {
