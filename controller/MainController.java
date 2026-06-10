@@ -627,6 +627,18 @@ public class MainController {
     }
 
     @FXML
+    public void handleHistoryFilterChange(javafx.event.ActionEvent event) {
+        String filterCat = historyCategoryFilter != null ? historyCategoryFilter.getValue() : "All Categories";
+        java.util.List<Transaksi> filtered = new java.util.ArrayList<>();
+        for (Transaksi t : akun.getRiwayatTransaksi()) {
+            if ("All Categories".equals(filterCat) || filterCat.equals(t.getKategori())) {
+                filtered.add(t);
+            }
+        }
+        renderListTransaksi(filtered);
+    }
+
+    @FXML
     public void filterTransactions() {
         if (searchField == null || filterTypeCombo == null || filterCategoryCombo == null) return;
         String query = searchField.getText() == null ? "" : searchField.getText().toLowerCase();
