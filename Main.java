@@ -33,7 +33,7 @@ public class Main extends Application {
         } catch (Exception e) {
             System.err.println("Gagal memuat icon aplikasi: " + e.getMessage());
         }
-        primaryStage.setScene(new Scene(root, 900, 600));
+        primaryStage.setScene(new Scene(root, 900, 750));
         primaryStage.show();
     }
 

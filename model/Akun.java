@@ -114,6 +114,31 @@ public class Akun {
         }
     }
 
+    public void updateTransaksiDB(Transaksi transaksi, String jenis) {
+        if (model.Session.getInstance().getCurrentUser() == null) return;
+        int userId = model.Session.getInstance().getCurrentUser().getId();
+
+        String query = "UPDATE transaksi SET jenis = ?, nominal = ?, kategori = ?, tanggal = ?, deskripsi = ? WHERE id = ? AND user_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+             
+            pstmt.setString(1, jenis);
+            pstmt.setDouble(2, transaksi.getNominal());
+            pstmt.setString(3, transaksi.getKategori());
+            pstmt.setDate(4, java.sql.Date.valueOf(transaksi.getTanggal()));
+            pstmt.setString(5, transaksi.getDeskripsi());
+            pstmt.setInt(6, transaksi.getId());
+            pstmt.setInt(7, userId);
+            
+            pstmt.executeUpdate();
+            
+            // Muat ulang data dari database agar saldo tersinkronisasi
+            muatDataDariDatabase();
+        } catch (SQLException e) {
+            System.err.println("Gagal mengupdate data di database: " + e.getMessage());
+        }
+    }
+
     public void hapusSemuaTransaksiDB() {
         if (model.Session.getInstance().getCurrentUser() == null) return;
         int userId = model.Session.getInstance().getCurrentUser().getId();
