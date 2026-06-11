@@ -297,14 +297,14 @@
                             <VBox styleClass="balance-card, card-dark" HBox.hgrow="ALWAYS" alignment="CENTER" prefHeight="400">
                                 <Label text="Expenses Breakdown" styleClass="section-title" />
                                 <Region VBox.vgrow="ALWAYS"/>
-                                <PieChart fx:id="expensePieChart" legendVisible="true" labelsVisible="true" prefHeight="300" animated="false" />
+                                <PieChart fx:id="expensePieChart" legendVisible="true" labelsVisible="true" legendSide="RIGHT" minHeight="320" maxHeight="Infinity" VBox.vgrow="ALWAYS" animated="false" />
                             </VBox>
                             
                             <!-- Income Breakdown -->
                             <VBox styleClass="balance-card, card-dark" HBox.hgrow="ALWAYS" alignment="CENTER" prefHeight="400">
                                 <Label text="Income Sources" styleClass="section-title" />
                                 <Region VBox.vgrow="ALWAYS"/>
-                                <PieChart fx:id="analyticsIncomePieChart" legendVisible="true" labelsVisible="true" prefHeight="300" animated="false" />
+                                <PieChart fx:id="analyticsIncomePieChart" legendVisible="true" labelsVisible="true" legendSide="RIGHT" minHeight="320" maxHeight="Infinity" VBox.vgrow="ALWAYS" animated="false" />
                             </VBox>
                         </HBox>
                         
