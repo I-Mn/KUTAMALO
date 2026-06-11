@@ -611,31 +611,50 @@
     -fx-background-color: #1a1a1a;
     -fx-border-color: #333333;
     -fx-border-radius: 8;
+    -fx-background-radius: 8;
 }
 .date-picker-popup .month-year-pane {
     -fx-background-color: #2a2a2a;
+    -fx-padding: 8 8 8 8;
+}
+.date-picker-popup .month-year-pane .label {
+    -fx-text-fill: white;
 }
 .date-picker-popup .spinner .button {
     -fx-background-color: transparent;
-    -fx-text-fill: white;
+    -fx-cursor: hand;
 }
-.date-picker-popup .spinner .label {
-    -fx-text-fill: white;
+.date-picker-popup .spinner .button .left-arrow,
+.date-picker-popup .spinner .button .right-arrow {
+    -fx-background-color: white;
+}
+.date-picker-popup .calendar-grid {
+    -fx-background-color: #1a1a1a;
+    -fx-padding: 8;
 }
 .date-picker-popup .day-name-cell, .date-picker-popup .day-cell {
+    -fx-background-color: #1a1a1a;
     -fx-text-fill: #cccccc;
-    -fx-background-color: transparent;
+    -fx-font-family: 'Inter', sans-serif;
+    -fx-font-size: 13px;
+    -fx-padding: 5;
+}
+.date-picker-popup .day-name-cell {
+    -fx-font-weight: bold;
+    -fx-text-fill: #888888;
 }
 .date-picker-popup .day-cell:hover {
     -fx-background-color: #333333;
+    -fx-cursor: hand;
 }
 .date-picker-popup .today {
-    -fx-background-color: #555555;
+    -fx-background-color: #444444;
     -fx-text-fill: white;
 }
-.date-picker-popup .selected {
+.date-picker-popup .selected, .date-picker-popup .selected:hover {
     -fx-background-color: #F39C12;
-    -fx-text-fill: black;
+    -fx-text-fill: #121212;
+    -fx-font-weight: bold;
 }
 
 .chart-filter, .table-filter {
@@ -715,14 +734,8 @@
 .area-chart .axis-tick-mark, .area-chart .axis-minor-tick-mark {
     -fx-stroke: transparent;
 }
-.area-chart .chart-legend {
-    -fx-background-color: transparent;
-    -fx-padding: 20;
-}
-.area-chart .chart-legend-item {
-    -fx-text-fill: #cccccc;
-    -fx-font-family: 'Inter', sans-serif;
-}
+
+
 
 /* Series 0: Income (Green) */
 .default-color0.chart-series-area-line {
@@ -754,3 +767,27 @@
     -fx-padding: 4px;
 }
 
+
+/* ========================================================
+   GLOBAL CHART LEGEND & PIE CHART STYLING
+   ======================================================== */
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 20;
+}
+.chart-legend-item {
+    -fx-text-fill: #cccccc !important;
+    -fx-font-family: 'Inter', sans-serif;
+    -fx-font-size: 13px;
+    -fx-padding: 2 10 2 10;
+}
+
+.pie-chart .chart-pie-label {
+    -fx-fill: #ffffff !important;
+    -fx-font-size: 13px !important;
+    -fx-font-weight: bold;
+    -fx-font-family: 'Inter', sans-serif;
+}
+.pie-chart .chart-pie-label-line {
+    -fx-stroke: #666666;
+}
