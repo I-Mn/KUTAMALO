@@ -515,7 +515,7 @@ showSuccessModal("Data successfully exported to:\n" + file.getAbsolutePath());
         }
 
         renderChart();
-        renderListTransaksi();
+        handleHistoryFilterChange(null);
         renderAnalytics();
     }
 
@@ -775,11 +775,17 @@ showSuccessModal("Data successfully exported to:\n" + file.getAbsolutePath());
     }
 
     @FXML
-    public void handleHistoryFilterChange(javafx.event.ActionEvent event) {
-        String filterCat = historyCategoryFilter != null ? historyCategoryFilter.getValue() : "All Categories";
+    public void handleHistoryFilterChange(javafx.event.Event event) {
+        String filterCat = historyCategoryFilter != null && historyCategoryFilter.getValue() != null ? historyCategoryFilter.getValue() : "All Categories";
+        String query = searchTransactionField != null && searchTransactionField.getText() != null ? searchTransactionField.getText().toLowerCase() : "";
+        
         java.util.List<Transaksi> filtered = new java.util.ArrayList<>();
         for (Transaksi t : akun.getRiwayatTransaksi()) {
-            if ("All Categories".equals(filterCat) || filterCat.equals(t.getKategori())) {
+            boolean matchesCat = "All Categories".equals(filterCat) || filterCat.equals(t.getKategori());
+            boolean matchesSearch = query.isEmpty() || 
+                                    (t.getKategori() != null && t.getKategori().toLowerCase().contains(query)) || 
+                                    (t.getDeskripsi() != null && t.getDeskripsi().toLowerCase().contains(query));
+            if (matchesCat && matchesSearch) {
                 filtered.add(t);
             }
         }
