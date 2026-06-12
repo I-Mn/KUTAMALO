@@ -936,7 +936,13 @@ showSuccessModal("Data successfully exported to:\n" + file.getAbsolutePath());
         deskripsiAreaModal.clear();
         tanggalPickerModal.setValue(LocalDate.now());
         jenisComboModal.setValue("Pengeluaran");
+        
+        modalOverlay.setOpacity(0.0);
         modalOverlay.setVisible(true);
+        javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(javafx.util.Duration.millis(200), modalOverlay);
+        ft.setFromValue(0.0);
+        ft.setToValue(1.0);
+        ft.play();
     }
 
     public void bukaFormEdit(Transaksi t) {
